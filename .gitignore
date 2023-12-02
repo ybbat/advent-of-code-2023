@@ -12,3 +12,7 @@ _deps
 
 .cache/
 build/
+
+# ignore input/example files
+*input.txt
+*example.txt
