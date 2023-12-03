@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cmath>
-#include <numeric>
 #include <vector>
 
 int parsenum(std::vector<std::vector<char>> input, int i, int j) {
@@ -46,7 +45,7 @@ int findratio(std::vector<std::vector<char>> input, int i, int j) {
 
     if (adjs.size() == 1) return 0;
 
-    return std::accumulate(adjs.begin(), adjs.end(), 1, std::multiplies<int>());
+    return adjs[0] * adjs[1];
 }
 
 int main(int argc, char* argv[])
