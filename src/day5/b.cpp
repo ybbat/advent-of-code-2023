@@ -52,9 +52,10 @@ int main(int argc, char* argv[])
     while (std::getline(std::cin, line)) {
         if (line.empty()) {
             if (!before.empty()) {
-                after.insert(after.end(), before.begin(), before.end());
+                before.insert(before.end(), after.begin(), after.end());
+            } else {
+                before = after;
             }
-            before = after;
             after.clear();
         } else if (isdigit(line[0])) {
             std::vector map = parsenums(line);
