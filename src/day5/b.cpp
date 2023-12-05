@@ -15,10 +15,6 @@ struct Range {
     long last;
 };
 
-bool operator==(const Range& lhs, const Range& rhs) {
-    return lhs.first == rhs.first && lhs.last == rhs.last;
-}
-
 std::vector<long> parsenums(std::string str) {
     std::vector<long> nums;
     std::stringstream ss(str);
@@ -45,17 +41,19 @@ int main(int argc, char* argv[])
     std::string line;
 
     std::getline(std::cin, line);
-    std::vector<Range> seeds = parseRanges(line.substr(line.find(":") + 1));
 
-    std::vector<Range> before = seeds;
-    std::vector<Range> after = seeds;
+    std::vector<Range> before = parseRanges(line.substr(line.find(":") + 1));
+    std::vector<Range> after;
 
-    std::vector<Range> goingtoadd;
+    std::vector<Range> unused;
 
     std::getline(std::cin, line); // skip next line
 
     while (std::getline(std::cin, line)) {
         if (line.empty()) {
+            if (!before.empty()) {
+                after.insert(after.end(), before.begin(), before.end());
+            }
             before = after;
             after.clear();
         } else if (isdigit(line[0])) {
@@ -64,44 +62,30 @@ int main(int argc, char* argv[])
             Range src_range = {m.source, m.source + m.amount - 1};
             long change = m.dest - m.source;
 
-            std::cout << after.size() << " -> ";
-
-            for (auto r : before) {
+            while (!before.empty()) {
+                Range r = before.back();
+                before.pop_back();
 
                 if (r.first >= src_range.first && r.last <= src_range.last) { // CASE 1: r is completely within src_range
-                    // std::cout << "CASE 1" << std::endl;
                     after.push_back({r.first + change, r.last + change});
-                    std::erase_if(goingtoadd, [r](Range& x) { return x == r; });
                 } else if (r.first >= src_range.first && r.first <= src_range.last) { // CASE 2: only r.first is within src_range
-                    // std::cout << "CASE 2" << std::endl;
                     after.push_back({r.first + change, src_range.last + change});
-                    after.push_back({src_range.last + 1, r.last});
-                    std::erase_if(goingtoadd, [r](Range& x) { return x == r; });
+                    unused.push_back({src_range.last + 1, r.last});
                 } else if (r.last >= src_range.first && r.last <= src_range.last) { // CASE 3: only r.last is within src_range
-                    // std::cout << "CASE 3" << std::endl;
-                    after.push_back({r.first, src_range.first - 1});
+                    unused.push_back({r.first, src_range.first - 1});
                     after.push_back({src_range.first + change, r.last + change});
-                    std::erase_if(goingtoadd, [r](Range& x) { return x == r; });
                 } else if (src_range.first >= r.first && src_range.last <= r.last) { // CASE 4: src_range is commpletely within r
-                    // std::cout << "CASE 4" << std::endl;
-                    after.push_back({r.first, src_range.first - 1});
+                    unused.push_back({r.first, src_range.first - 1});
                     after.push_back({src_range.first + change, src_range.last + change});
-                    after.push_back({src_range.last + 1, r.last});
-                    std::erase_if(goingtoadd, [r](Range& x) { return x == r; });
+                    unused.push_back({src_range.last + 1, r.last});
                 } else { // CASE 5: no intersection
-                    // std::cout << "CASE 5" << std::endl;
-                    goingtoadd.push_back(r);
+                    unused.push_back(r);
                 }
             }
-            after.insert(after.end(), goingtoadd.begin(), goingtoadd.end());
-            goingtoadd.clear();
-            std::cout << after.size() << std::endl;
+            before = unused;
+            unused.clear();
         }
     }
-
-    // for (aut& r : after) {
-    //     std::cout << r.first << " " << r.last << std::endl;
-    // }
 
     long smallest = LONG_MAX;
     for (auto r : after) {
